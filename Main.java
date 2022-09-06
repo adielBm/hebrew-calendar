@@ -1,8 +1,11 @@
 import java.util.HashMap;
+import java.util.Scanner;
 
 public class Main {
 
-  public static String[] HEBREW_DAYS = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+  public static String[] HEBREW_DAYS = { "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+  public static int[] DAYS_IN_MONTH = { 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29 };
+
   public static int[] LEAPYEARS = { 3, 6, 8, 11, 14, 17, 19 };
   public static int MONTHS_IN_SYCLE = 12 * 19 + LEAPYEARS.length;
 
@@ -19,10 +22,21 @@ public class Main {
 
   public static void main(String[] args) {
 
-    int year = 5790;
+    Scanner myObj = new Scanner(System.in); // Create a Scanner object
 
-    System.out.println(formatDay(getRoshHashana(year)));
-    // System.out.println(getMoladTishrei(year));
+    System.out.println("Enter Year");
+    int year = myObj.nextInt(); // Read user input
+
+    System.out.println("Enter Month");
+    int month = myObj.nextInt(); // Read user input
+
+    System.out.println("Enter Day");
+    int day = myObj.nextInt(); // Read user input
+
+
+    System.out.println(formatDay(getWeekDayByDate(year, month, day)));
+
+    // System.out.println(formatDay(getRoshHashana(year)));
     // System.out.println(getMonthsSinceBaharad(year));
 
   }
@@ -89,14 +103,10 @@ public class Main {
 
   public static int getRoshHashana(int year) {
     HashMap<String, Integer> MT = getMoladTishrei(year);
-    
+
     int dayMt = (int) MT.get("day");
     int hoursMt = (int) MT.get("hours");
     int partsMt = (int) MT.get("parts");
-    
-    if (dayMt == 2) {
-      System.out.println("dayMt == 2");
-    }
 
     if (dayMt == 3 && isLeapYear(year) == false) {
       if (hoursMt >= 10 || (hoursMt == 9 && partsMt >= 204)) {
@@ -109,21 +119,85 @@ public class Main {
     } else if (hoursMt >= 18) {
       dayMt += 1;
     }
-  
+
     if (dayMt == 1 || dayMt == 4 || dayMt == 6) {
       dayMt += 1;
     }
-  
+
     if (dayMt == 7) {
       dayMt = 0;
     }
-  
+
     return dayMt;
   }
 
+  public static int getPassover(int year) {
+    int nextRoshHashana = getRoshHashana(year + 1);
+    int passover = nextRoshHashana + 5;
+    passover = passover % 7;
+    return passover;
+  }
+
+  public static char getYearType(int year) {
+
+    int diff = getRoshHashana(year + 1) - getRoshHashana(year);
+
+    if (diff < 0)
+      diff += 7;
+    diff = diff % 7;
+
+    if (isLeapYear(year)) {
+      if (diff == 5)
+        return 'ח';
+      if (diff == 6)
+        return 'כ';
+      if (diff == 0)
+        return 'ש';
+    } else {
+      if (diff == 3)
+        return 'ח';
+      if (diff == 4)
+        return 'כ';
+      if (diff == 5)
+        return 'ש';
+    }
+    return 0;
+  }
 
   public static String formatDay(int day) {
     return HEBREW_DAYS[day];
   }
+
+  public static int getWeekDayByDate(int year, int month, int day) {
+
+    char yearType = getYearType(year);
+
+    int weekDay;
+
+    weekDay = getRoshHashana(year);
+
+    for (int i = 1; i < month; i++) {
+      if (isLeapYear(year) == false && i == 6) {
+        month++;
+        continue;
+      }
+
+      weekDay += DAYS_IN_MONTH[i];
+
+      if (yearType == 'ש' && month == 3) {
+        weekDay++;
+      }
+
+      if (yearType == 'ח' && month == 4) {
+        weekDay--;
+      }
+    }
+
+    weekDay += day;
+    return weekDay % 7;
+  }
+
+
+  
 
 }

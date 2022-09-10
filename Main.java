@@ -1,43 +1,30 @@
 import java.util.HashMap;
-import java.util.Scanner;
+// import java.util.Scanner;
 
 public class Main {
 
-  public static String[] HEBREW_DAYS = { "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
-  public static int[] DAYS_IN_MONTH = { 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29 };
+  public static final String[] HEBREW_DAYS = { "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+      "Friday" };
+  public static final boolean[] LEAPS_MONTHS = { true, false, true, false, true, true, false, true, false, true, false,
+      true, false };
 
-  public static int[] LEAPYEARS = { 3, 6, 8, 11, 14, 17, 19 };
-  public static int MONTHS_IN_SYCLE = 12 * 19 + LEAPYEARS.length;
+  public static final int[] LEAPYEARS = { 3, 6, 8, 11, 14, 17, 19 };
+  public static final int MONTHS_IN_SYCLE = 12 * 19 + LEAPYEARS.length;
 
-  public static int HOUR_AS_PARTS = 1080;
-  public static int DAY_AS_PARTS = HOUR_AS_PARTS * 24;
-  public static int WEEK_AS_PARTS = DAY_AS_PARTS * 7; // 181440
-  public static int MONTH_AS_PARTS = (DAY_AS_PARTS * 29) + (HOUR_AS_PARTS * 12) + 793;
+  public static final int HOUR_AS_PARTS = 1080;
+  public static final int DAY_AS_PARTS = HOUR_AS_PARTS * 24;
+  public static final int WEEK_AS_PARTS = DAY_AS_PARTS * 7; // 181440
+  public static final int MONTH_AS_PARTS = (DAY_AS_PARTS * 29) + (HOUR_AS_PARTS * 12) + 793;
 
   // Remainder of MONTH after removal of the entire weeks. (Week Modulo)
-  public static int REMNANT_MONTH = MONTH_AS_PARTS % WEEK_AS_PARTS; // 39673
+  public static final int REMNANT_MONTH = MONTH_AS_PARTS % WEEK_AS_PARTS; // 39673
 
   // Molad "BaHaRad": (2 days. 5 hours. 204 parts )
-  public static int BAHARAD = (DAY_AS_PARTS * 2) + (HOUR_AS_PARTS * 5) + 204; // 57444
+  public static final int BAHARAD = (DAY_AS_PARTS * 2) + (HOUR_AS_PARTS * 5) + 204; // 57444
 
   public static void main(String[] args) {
 
-    Scanner myObj = new Scanner(System.in); // Create a Scanner object
-
-    System.out.println("Enter Year");
-    int year = myObj.nextInt(); // Read user input
-
-    System.out.println("Enter Month");
-    int month = myObj.nextInt(); // Read user input
-
-    System.out.println("Enter Day");
-    int day = myObj.nextInt(); // Read user input
-
-
-    System.out.println(formatDay(getWeekDayByDate(year, month, day)));
-
-    // System.out.println(formatDay(getRoshHashana(year)));
-    // System.out.println(getMonthsSinceBaharad(year));
+    System.out.println(formatDay(getWeekDayByDate(5783, "nisan", 15)));
 
   }
 
@@ -138,66 +125,188 @@ public class Main {
     return passover;
   }
 
-  public static char getYearType(int year) {
+  /*
+   * True if Heshvan is long in Hebrew year.
+   */
+  public static boolean isCheshvanLong(int year) {
 
-    int diff = getRoshHashana(year + 1) - getRoshHashana(year);
+    int diff = getDifferenceToNextYear(year);
 
-    if (diff < 0)
-      diff += 7;
-    diff = diff % 7;
+    if (isLeapYear(year)) {
+      if (diff == 0)
+        return true;
+    } else {
+      if (diff == 5)
+        return true;
+    }
+    return false;
+  }
+
+  /*
+   * True if Kislev is short in Hebrew year.
+   */
+  public static boolean isKislevShort(int year) {
+
+    int diff = getDifferenceToNextYear(year);
 
     if (isLeapYear(year)) {
       if (diff == 5)
-        return 'ח';
-      if (diff == 6)
-        return 'כ';
-      if (diff == 0)
-        return 'ש';
+        return true;
     } else {
       if (diff == 3)
-        return 'ח';
-      if (diff == 4)
-        return 'כ';
-      if (diff == 5)
-        return 'ש';
+        return true;
     }
-    return 0;
+    return false;
   }
+
+  /*
+   * The difference in days to next year. with week modulo.
+   */
+  public static int getDifferenceToNextYear(int year) {
+    int diff = getRoshHashana(year + 1) - getRoshHashana(year);
+    if (diff < 0)
+      diff += 7;
+    return diff % 7;
+  }
+
+  // public static char getYearType(int year) {
+
+  // int diff = getRoshHashana(year + 1) - getRoshHashana(year);
+
+  // if (diff < 0)
+  // diff += 7;
+  // diff = diff % 7;
+
+  // if (isLeapYear(year)) {
+  // if (diff == 5)
+  // return 'ח';
+  // if (diff == 6)
+  // return 'כ';
+  // if (diff == 0)
+  // return 'ש';
+  // } else {
+  // if (diff == 3)
+  // return 'ח';
+  // if (diff == 4)
+  // return 'כ';
+  // if (diff == 5)
+  // return 'ש';
+  // }
+  // return 0;
+  // }
 
   public static String formatDay(int day) {
     return HEBREW_DAYS[day];
   }
 
-  public static int getWeekDayByDate(int year, int month, int day) {
+  public static int getWeekDayByDate(int year, String monthStr, int day) {
 
-    char yearType = getYearType(year);
+    int month = getIndexMonth(year, monthStr);
 
-    int weekDay;
+    int roshHashana = getRoshHashana(year);
 
-    weekDay = getRoshHashana(year);
+    int weekDay = roshHashana;
 
-    for (int i = 1; i < month; i++) {
-      if (isLeapYear(year) == false && i == 6) {
-        month++;
-        continue;
+    for (int i = 1; i <= month; i++) {
+      if (i > 1) {
+        weekDay += getDaysInMonth(year, i - 1);
       }
+    }
+    weekDay += day - 1;
+    weekDay = weekDay % 7;
+    return weekDay;
+  }
 
-      weekDay += DAYS_IN_MONTH[i];
+  public static boolean isLeapMonth(int year, int month) {
 
-      if (yearType == 'ש' && month == 3) {
-        weekDay++;
-      }
+    if (isCheshvanLong(year) && month == 2) {
+      return true;
+    }
 
-      if (yearType == 'ח' && month == 4) {
-        weekDay--;
+    if (isKislevShort(year) && month == 3) {
+      return false;
+    }
+
+    if (month >= 6) {
+      if (isLeapYear(year)) {
+        return LEAPS_MONTHS[month - 1];
+      } else {
+        return LEAPS_MONTHS[month];
       }
     }
 
-    weekDay += day;
-    return weekDay % 7;
+    return LEAPS_MONTHS[month - 1];
+
   }
 
+  public static int getDaysInMonth(int year, int month) {
+    if (isLeapMonth(year, month)) {
+      return 30;
+    } else {
+      return 29;
+    }
+  }
 
-  
+  public static int getIndexMonth(int year, String month) {
+
+    boolean isLeapYear = isLeapYear(year);
+    int index;
+
+    switch (month.toUpperCase()) {
+      case "TISHREI": 
+        index = 1;
+        break;
+      case "CHESHVAN": 
+        index = 2;
+        break;
+      case "KISLEV": 
+        index = 3;
+        break;
+      case "TEVET": 
+        index = 4;
+        break;
+      case "SHVAT": 
+        index = 5;
+        break;
+      case "ADAR": 
+        index = 6;
+        if (isLeapYear) index++;
+        break;
+      case "ADARI": 
+        index = 6;
+        break;
+      case "ADARII": 
+        index = 7;
+        break;
+      case "NISAN": 
+        index = 7;
+        if (isLeapYear) index++;
+        break;
+      case "IYAR": 
+        index = 8;
+        if (isLeapYear) index++;
+        break;
+      case "SIVAN": 
+        index = 9;
+        if (isLeapYear) index++;
+        break;
+      case "TAMMUZ": 
+        index = 10;
+        if (isLeapYear) index++;
+        break;
+      case "AV": 
+        index = 11;
+        if (isLeapYear) index++;
+        break;
+      case "ELUL": 
+        index = 12;
+        if (isLeapYear) index++;
+        break;
+      default:
+        return 1;
+    }
+
+    return index;
+  }
 
 }

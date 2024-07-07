@@ -1,7 +1,10 @@
 import java.util.HashMap;
-// import java.util.Scanner;
 
 public class Main {
+
+  public static void main(String[] args) {
+    System.out.println(formatDay(getWeekDayByDate(5783, "nisan", 15)));
+  }
 
   public static final String[] HEBREW_DAYS = { "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
       "Friday" };
@@ -22,11 +25,7 @@ public class Main {
   // Molad "BaHaRad": (2 days. 5 hours. 204 parts )
   public static final int BAHARAD = (DAY_AS_PARTS * 2) + (HOUR_AS_PARTS * 5) + 204; // 57444
 
-  public static void main(String[] args) {
 
-    System.out.println(formatDay(getWeekDayByDate(5783, "nisan", 15)));
-
-  }
 
   public static int getMonthsSinceBaharad(int currentYear) {
     currentYear--;
